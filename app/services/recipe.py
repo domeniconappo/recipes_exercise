@@ -12,10 +12,10 @@ from app.schemas.recipe import (
     RecipeUpdate,
 )
 
-
 # ---------------------------------------------------------------------------
 # Read
 # ---------------------------------------------------------------------------
+
 
 async def get_recipe_by_id(db: AsyncSession, recipe_id: int) -> Optional[Recipe]:
     result = await db.execute(select(Recipe).where(Recipe.id == recipe_id))
@@ -71,9 +71,7 @@ async def list_recipes(
         )
 
     # --- total count before pagination ---
-    count_result = await db.execute(
-        select(func.count()).select_from(query.subquery())
-    )
+    count_result = await db.execute(select(func.count()).select_from(query.subquery()))
     total = count_result.scalar_one()
 
     # --- pagination ---
@@ -96,6 +94,7 @@ async def list_recipes(
 # Write
 # ---------------------------------------------------------------------------
 
+
 async def create_recipe(
     db: AsyncSession,
     data: RecipeCreate,
@@ -113,12 +112,14 @@ async def create_recipe(
     await db.flush()  # get recipe.id without committing
 
     for ing in data.ingredients:
-        db.add(RecipeIngredient(
-            recipe_id=recipe.id,
-            name=ing.name,
-            quantity=ing.quantity,
-            unit=ing.unit,
-        ))
+        db.add(
+            RecipeIngredient(
+                recipe_id=recipe.id,
+                name=ing.name,
+                quantity=ing.quantity,
+                unit=ing.unit,
+            )
+        )
 
     await db.commit()
     await db.refresh(recipe)
@@ -149,12 +150,14 @@ async def update_recipe(
         await db.flush()
 
         for ing in new_ingredients:
-            db.add(RecipeIngredient(
-                recipe_id=recipe.id,
-                name=ing["name"],
-                quantity=ing["quantity"],
-                unit=ing["unit"],
-            ))
+            db.add(
+                RecipeIngredient(
+                    recipe_id=recipe.id,
+                    name=ing["name"],
+                    quantity=ing["quantity"],
+                    unit=ing["unit"],
+                )
+            )
         await db.flush()
 
     await db.commit()

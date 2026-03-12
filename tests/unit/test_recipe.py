@@ -18,10 +18,10 @@ from app.schemas.recipe import (
     RecipeUpdate,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def make_ingredient(**overrides) -> dict:
     return {"name": "potatoes", "quantity": 500.0, "unit": "grams", **overrides}
@@ -41,6 +41,7 @@ def make_recipe(**overrides) -> dict:
 # ---------------------------------------------------------------------------
 # IngredientCreate
 # ---------------------------------------------------------------------------
+
 
 class TestIngredientCreate:
     def test_valid(self):
@@ -81,6 +82,7 @@ class TestIngredientCreate:
 # ---------------------------------------------------------------------------
 # RecipeCreate
 # ---------------------------------------------------------------------------
+
 
 class TestRecipeCreate:
     def test_valid_minimal(self):
@@ -124,10 +126,14 @@ class TestRecipeCreate:
             RecipeCreate(**make_recipe(ingredients=[]))
 
     def test_multiple_ingredients_accepted(self):
-        recipe = RecipeCreate(**make_recipe(ingredients=[
-            make_ingredient(name="potatoes"),
-            make_ingredient(name="cream", quantity=200, unit="ml"),
-        ]))
+        recipe = RecipeCreate(
+            **make_recipe(
+                ingredients=[
+                    make_ingredient(name="potatoes"),
+                    make_ingredient(name="cream", quantity=200, unit="ml"),
+                ]
+            )
+        )
         assert len(recipe.ingredients) == 2
 
     def test_non_vegetarian(self):
@@ -138,6 +144,7 @@ class TestRecipeCreate:
 # ---------------------------------------------------------------------------
 # RecipeUpdate
 # ---------------------------------------------------------------------------
+
 
 class TestRecipeUpdate:
     def test_all_fields_optional(self):
@@ -184,8 +191,8 @@ class TestRecipeUpdate:
 # RecipeFilterParams
 # ---------------------------------------------------------------------------
 
-class TestRecipeFilterParams:
 
+class TestRecipeFilterParams:
     def test_defaults(self):
         params = RecipeFilterParams()
         assert params.vegetarian is None
@@ -253,6 +260,7 @@ class TestRecipeFilterParams:
 # ---------------------------------------------------------------------------
 # RecipeListResponse
 # ---------------------------------------------------------------------------
+
 
 class TestRecipeListResponse:
     def test_pagination_fields(self):

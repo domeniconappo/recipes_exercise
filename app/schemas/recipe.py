@@ -3,10 +3,10 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-
 # ---------------------------------------------------------------------------
 # Ingredient schemas
 # ---------------------------------------------------------------------------
+
 
 class IngredientCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100, examples=["potatoes"])
@@ -26,6 +26,7 @@ class IngredientResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Recipe schemas
 # ---------------------------------------------------------------------------
+
 
 class RecipeCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200, examples=["Potato Gratin"])
@@ -71,6 +72,7 @@ class RecipeListResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Filter params schema
 # ---------------------------------------------------------------------------
+
 
 class RecipeFilterParams(BaseModel):
     vegetarian: Optional[bool] = None

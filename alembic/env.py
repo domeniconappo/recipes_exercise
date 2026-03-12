@@ -26,8 +26,9 @@ config.set_main_option("sqlalchemy.url", sync_url)
 # target_metadata = mymodel.Base.metadata
 from sqlmodel import SQLModel
 
-import app.models.user  # noqa: F401
 import app.models.recipe  # noqa: F401
+import app.models.user  # noqa: F401
+
 target_metadata = SQLModel.metadata
 
 

@@ -7,7 +7,7 @@ dependency override — fast, deterministic, no uvicorn needed.
 import pytest
 
 from app.schemas.auth import UserRegisterRequest
-from app.services.auth import register_user, build_token_response
+from app.services.auth import build_token_response, register_user
 
 API = "/api/v1/recipes"
 
@@ -16,6 +16,7 @@ API = "/api/v1/recipes"
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 async def _register_and_token(client, db_override, email="chef@example.com"):
     """Create a user directly via service and return a bearer token."""
     from app.database import get_db
@@ -23,9 +24,10 @@ async def _register_and_token(client, db_override, email="chef@example.com"):
 
     # Pull a db session out of the override
     async for db in app.dependency_overrides[get_db]():
-        user = await register_user(db, UserRegisterRequest(
-            email=email, password="Str0ngPass!", full_name="Chef"
-        ))
+        user = await register_user(
+            db,
+            UserRegisterRequest(email=email, password="Str0ngPass!", full_name="Chef"),
+        )
         tokens = build_token_response(user.id)
         return user, f"Bearer {tokens.access_token}"
 
@@ -45,10 +47,6 @@ RECIPE_PAYLOAD = {
     ],
 }
 
-
-# ---------------------------------------------------------------------------
-# POST /recipes  — create
-# ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
 class TestCreateRecipe:
@@ -77,24 +75,26 @@ class TestCreateRecipe:
 
     async def test_create_empty_ingredients_returns_422(self, client):
         _, token = await _register_and_token(client, None, email="b@example.com")
-        resp = await client.post(API, json={**RECIPE_PAYLOAD, "ingredients": []}, headers=auth_headers(token))
+        resp = await client.post(
+            API, json={**RECIPE_PAYLOAD, "ingredients": []}, headers=auth_headers(token)
+        )
         assert resp.status_code == 422
 
     async def test_create_zero_servings_returns_422(self, client):
         _, token = await _register_and_token(client, None, email="c@example.com")
-        resp = await client.post(API, json={**RECIPE_PAYLOAD, "servings": 0}, headers=auth_headers(token))
+        resp = await client.post(
+            API, json={**RECIPE_PAYLOAD, "servings": 0}, headers=auth_headers(token)
+        )
         assert resp.status_code == 422
 
-
-# ---------------------------------------------------------------------------
-# GET /recipes/{id}  — fetch one
-# ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
 class TestGetRecipe:
     async def test_get_existing_recipe(self, client):
         _, token = await _register_and_token(client, None, email="d@example.com")
-        created = (await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))).json()
+        created = (
+            await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))
+        ).json()
 
         resp = await client.get(f"{API}/{created['id']}")
         assert resp.status_code == 200
@@ -106,33 +106,44 @@ class TestGetRecipe:
 
     async def test_get_does_not_require_auth(self, client):
         _, token = await _register_and_token(client, None, email="e@example.com")
-        created = (await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))).json()
+        created = (
+            await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))
+        ).json()
 
         # No auth header
         resp = await client.get(f"{API}/{created['id']}")
         assert resp.status_code == 200
 
 
-# ---------------------------------------------------------------------------
-# GET /recipes  — list & filter
-# ---------------------------------------------------------------------------
-
 @pytest.mark.asyncio
 class TestListRecipes:
     async def _seed(self, client, token):
         recipes = [
-            {**RECIPE_PAYLOAD, "title": "Veggie Pasta", "servings": 2,
-             "instructions": "Boil pasta. Add sauce. Bake in oven.",
-             "ingredients": [{"name": "pasta", "quantity": 200, "unit": "grams"}]},
-            {**RECIPE_PAYLOAD, "title": "Salmon Fillet", "is_vegetarian": False, "servings": 2,
-             "instructions": "Pan fry salmon for 4 minutes.",
-             "ingredients": [{"name": "salmon", "quantity": 300, "unit": "grams"}]},
-            {**RECIPE_PAYLOAD, "title": "Potato Gratin", "servings": 4,
-             "instructions": "Layer potatoes. Bake in the oven at 180°C.",
-             "ingredients": [
-                 {"name": "potatoes", "quantity": 500, "unit": "grams"},
-                 {"name": "cream", "quantity": 200, "unit": "ml"},
-             ]},
+            {
+                **RECIPE_PAYLOAD,
+                "title": "Veggie Pasta",
+                "servings": 2,
+                "instructions": "Boil pasta. Add sauce. Bake in oven.",
+                "ingredients": [{"name": "pasta", "quantity": 200, "unit": "grams"}],
+            },
+            {
+                **RECIPE_PAYLOAD,
+                "title": "Salmon Fillet",
+                "is_vegetarian": False,
+                "servings": 2,
+                "instructions": "Pan fry salmon for 4 minutes.",
+                "ingredients": [{"name": "salmon", "quantity": 300, "unit": "grams"}],
+            },
+            {
+                **RECIPE_PAYLOAD,
+                "title": "Potato Gratin",
+                "servings": 4,
+                "instructions": "Layer potatoes. Bake in the oven at 180°C.",
+                "ingredients": [
+                    {"name": "potatoes", "quantity": 500, "unit": "grams"},
+                    {"name": "cream", "quantity": 200, "unit": "ml"},
+                ],
+            },
         ]
         for r in recipes:
             await client.post(API, json=r, headers=auth_headers(token))
@@ -193,15 +204,13 @@ class TestListRecipes:
         assert resp.status_code == 200
 
 
-# ---------------------------------------------------------------------------
-# PUT /recipes/{id}  — update
-# ---------------------------------------------------------------------------
-
 @pytest.mark.asyncio
 class TestUpdateRecipe:
     async def test_update_title(self, client):
         _, token = await _register_and_token(client, None, email="upd1@example.com")
-        created = (await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))).json()
+        created = (
+            await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))
+        ).json()
 
         resp = await client.put(
             f"{API}/{created['id']}",
@@ -214,11 +223,15 @@ class TestUpdateRecipe:
 
     async def test_update_ingredients_replaces_all(self, client):
         _, token = await _register_and_token(client, None, email="upd2@example.com")
-        created = (await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))).json()
+        created = (
+            await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))
+        ).json()
 
         resp = await client.put(
             f"{API}/{created['id']}",
-            json={"ingredients": [{"name": "salmon", "quantity": 300, "unit": "grams"}]},
+            json={
+                "ingredients": [{"name": "salmon", "quantity": 300, "unit": "grams"}]
+            },
             headers=auth_headers(token),
         )
         assert resp.status_code == 200
@@ -228,15 +241,25 @@ class TestUpdateRecipe:
 
     async def test_update_requires_auth(self, client):
         _, token = await _register_and_token(client, None, email="upd3@example.com")
-        created = (await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))).json()
+        created = (
+            await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))
+        ).json()
 
         resp = await client.put(f"{API}/{created['id']}", json={"title": "Hacked"})
         assert resp.status_code == 401
 
     async def test_update_by_non_owner_returns_403(self, client):
-        _, token_owner = await _register_and_token(client, None, email="owner@example.com")
-        _, token_other = await _register_and_token(client, None, email="other@example.com")
-        created = (await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token_owner))).json()
+        _, token_owner = await _register_and_token(
+            client, None, email="owner@example.com"
+        )
+        _, token_other = await _register_and_token(
+            client, None, email="other@example.com"
+        )
+        created = (
+            await client.post(
+                API, json=RECIPE_PAYLOAD, headers=auth_headers(token_owner)
+            )
+        ).json()
 
         resp = await client.put(
             f"{API}/{created['id']}",
@@ -247,21 +270,23 @@ class TestUpdateRecipe:
 
     async def test_update_nonexistent_returns_404(self, client):
         _, token = await _register_and_token(client, None, email="upd4@example.com")
-        resp = await client.put(f"{API}/99999", json={"title": "X"}, headers=auth_headers(token))
+        resp = await client.put(
+            f"{API}/99999", json={"title": "X"}, headers=auth_headers(token)
+        )
         assert resp.status_code == 404
 
-
-# ---------------------------------------------------------------------------
-# DELETE /recipes/{id}
-# ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
 class TestDeleteRecipe:
     async def test_delete_success(self, client):
         _, token = await _register_and_token(client, None, email="del1@example.com")
-        created = (await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))).json()
+        created = (
+            await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))
+        ).json()
 
-        resp = await client.delete(f"{API}/{created['id']}", headers=auth_headers(token))
+        resp = await client.delete(
+            f"{API}/{created['id']}", headers=auth_headers(token)
+        )
         assert resp.status_code == 204
 
         get_resp = await client.get(f"{API}/{created['id']}")
@@ -269,17 +294,29 @@ class TestDeleteRecipe:
 
     async def test_delete_requires_auth(self, client):
         _, token = await _register_and_token(client, None, email="del2@example.com")
-        created = (await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))).json()
+        created = (
+            await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token))
+        ).json()
 
         resp = await client.delete(f"{API}/{created['id']}")
         assert resp.status_code == 401
 
     async def test_delete_by_non_owner_returns_403(self, client):
-        _, token_owner = await _register_and_token(client, None, email="delowner@example.com")
-        _, token_other = await _register_and_token(client, None, email="delother@example.com")
-        created = (await client.post(API, json=RECIPE_PAYLOAD, headers=auth_headers(token_owner))).json()
+        _, token_owner = await _register_and_token(
+            client, None, email="delowner@example.com"
+        )
+        _, token_other = await _register_and_token(
+            client, None, email="delother@example.com"
+        )
+        created = (
+            await client.post(
+                API, json=RECIPE_PAYLOAD, headers=auth_headers(token_owner)
+            )
+        ).json()
 
-        resp = await client.delete(f"{API}/{created['id']}", headers=auth_headers(token_other))
+        resp = await client.delete(
+            f"{API}/{created['id']}", headers=auth_headers(token_other)
+        )
         assert resp.status_code == 403
 
     async def test_delete_nonexistent_returns_404(self, client):
