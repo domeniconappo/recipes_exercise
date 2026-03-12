@@ -49,7 +49,7 @@ jobs:
         run: |
           docker run --rm \
             --network host \
-            -e POSTGRES_DB=test -e DATABASE_URL="postgresql+asyncpg://postgres:postgres@localhost:5432/test" \
+            -e SECRET_KEY=random-32-char-string-0123456789EX -e POSTGRES_DB=test -e DATABASE_URL="postgresql+asyncpg://postgres:postgres@localhost:5432/test" \
             -v ${{ github.workspace }}/reports:/tmp \
             fastapi-app:test
 

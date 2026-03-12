@@ -225,6 +225,7 @@ class TestRecipeFiltersIntegration:
 # Auth & ownership enforcement
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 class TestRecipeOwnershipIntegration:
     async def test_other_user_cannot_update(self, http_client):
