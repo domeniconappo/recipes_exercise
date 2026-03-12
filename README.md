@@ -13,8 +13,8 @@ Any user can manage their own recipes while having access to all others' recipes
 
 ## How to run
 
-The repository uses docker compose for local dev and testing.
-Ensure you have docker compose installed before running these commands.
+The repository uses Docker Compose for local dev and testing.
+Please be sure Docker Compose is installed before running the commands.
 
 ### Clone the repo from GitHub
 
@@ -35,8 +35,8 @@ You can then start the app and the DB servers with:
 
 `make run` will also migrate the DB if needed. 
 
-If you don't have `make` installed, to migrate the DB uses the docker compose command directly.
-Note: this is needed only the first time the app runs in the environment
+If you don't have `make` installed, to create the DB tables you can use the docker compose command directly.
+Note: this is needed only the first time the app runs in the environment.
 
 `docker compose exec app /application/.venv/bin/alembic -c /application/alembic.ini upgrade head`
 
@@ -49,8 +49,8 @@ To tear down the services:
 
 ### Tests
 
-The app has unit tests and integration tests with a real http client).
-They use PyTest.
+The app has unit tests and integration tests with a real HTTP client.
+Tests run with PyTest inside the container and present coverage results.
 
 To run the test suite:
 
