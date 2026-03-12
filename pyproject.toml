@@ -1,0 +1,53 @@
+[project]
+name = "recipes"
+version = "0.1.0"
+description = "Recipes API"
+requires-python = ">=3.13"
+authors = [
+  {name = "Domenico Nappo", email = "domenico.nappo@am-flow.com"},
+]
+dependencies = [
+    "alembic>=1.18.4",
+    "asyncpg>=0.31.0",
+    "fastapi[standard]>=0.135.1",
+    "psycopg2-binary>=2.9.11",
+    "pwdlib[argon2]>=0.3.0",
+    "pydantic-settings>=2.13.1",
+    "pydantic[email]>=2.12.5",
+    "pyjwt[crypto]>=2.11.0",
+    "pyyaml>=6.0.3",
+    "sqlmodel>=0.0.37",
+    "uvicorn[standard]>=0.41.0",
+]
+readme = "README.md"
+
+[dependency-groups]
+dev = [
+  "ipdb>=0.13.11,<0.14",
+  "ipython>=9",
+  "pytest>=7,<9",
+  "pytest-env<1.5.0",
+  "pytest-cov>=4.0.0,<5",
+  "pytest-mock>=3.14.0,<4",
+  "pytest-asyncio>=0.24",
+  "ruff>=0.1.14,<0.2",
+  "mypy>=1.9.0,<2",
+  "httpx>=0.28.1",
+]
+
+[tool.pytest.ini_options]
+addopts = "--junitxml=/tmp/pytest_report.xml -p no:cacheprovider --cov=. --cov-report=term --cov-report=xml:/tmp/coverage.xml --cov-report=html:/tmp/htmlcov"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_test_loop_scope = "session"
+asyncio_default_fixture_loop_scope = "session"
+cache_dir = "/tmp/.pytest_cache"
+filterwarnings = [
+    "ignore::DeprecationWarning:websockets",
+]
+
+[tool.coverage.run]
+source = ["app"]
+
+[tool.coverage.report]
+show_missing = true

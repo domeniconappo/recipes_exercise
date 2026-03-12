@@ -1,0 +1,659 @@
+openapi: 3.1.0
+info:
+  title: Recipe Manager API
+  description: Manage your favourite recipes with filtering, auth, and more.
+  version: 1.0.0
+paths:
+  /api/v1/auth/register:
+    post:
+      tags:
+      - Auth
+      summary: Register
+      operationId: register_api_v1_auth_register_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Login
+      operationId: login_api_v1_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/auth/refresh:
+    post:
+      tags:
+      - Auth
+      summary: Refresh
+      operationId: refresh_api_v1_auth_refresh_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/auth/me:
+    get:
+      tags:
+      - Auth
+      summary: Me
+      operationId: me_api_v1_auth_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+      security:
+      - HTTPBearer: []
+  /api/v1/recipes:
+    get:
+      tags:
+      - Recipes
+      summary: List and filter recipes
+      operationId: list_recipes_api_v1_recipes_get
+      parameters:
+      - name: vegetarian
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          description: Filter by vegetarian status
+          title: Vegetarian
+        description: Filter by vegetarian status
+      - name: servings
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+          description: Filter by exact number of servings
+          title: Servings
+        description: Filter by exact number of servings
+      - name: include_ingredients
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: array
+            items:
+              type: string
+          - type: 'null'
+          description: Include recipes with ALL of these ingredients
+          title: Include Ingredients
+        description: Include recipes with ALL of these ingredients
+      - name: exclude_ingredients
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: array
+            items:
+              type: string
+          - type: 'null'
+          description: Exclude recipes with ANY of these ingredients
+          title: Exclude Ingredients
+        description: Exclude recipes with ANY of these ingredients
+      - name: instructions_search
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Case-insensitive text search within instructions
+          title: Instructions Search
+        description: Case-insensitive text search within instructions
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          description: Page number
+          default: 1
+          title: Page
+        description: Page number
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Results per page
+          default: 20
+          title: Page Size
+        description: Results per page
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Recipes
+      summary: Create a recipe
+      operationId: create_recipe_api_v1_recipes_post
+      security:
+      - HTTPBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/recipes/{recipe_id}:
+    get:
+      tags:
+      - Recipes
+      summary: Get a recipe by ID
+      operationId: get_recipe_api_v1_recipes__recipe_id__get
+      parameters:
+      - name: recipe_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Recipe Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+      - Recipes
+      summary: Update a recipe (partial)
+      operationId: update_recipe_api_v1_recipes__recipe_id__put
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: recipe_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Recipe Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Recipes
+      summary: Delete a recipe
+      operationId: delete_recipe_api_v1_recipes__recipe_id__delete
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: recipe_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Recipe Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /health:
+    get:
+      tags:
+      - Health
+      summary: Health
+      operationId: health_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Health Health Get
+components:
+  schemas:
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    IngredientCreate:
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Name
+          examples:
+          - potatoes
+        quantity:
+          type: number
+          exclusiveMinimum: 0.0
+          title: Quantity
+          examples:
+          - 500
+        unit:
+          type: string
+          maxLength: 50
+          minLength: 1
+          title: Unit
+          examples:
+          - grams
+      type: object
+      required:
+      - name
+      - quantity
+      - unit
+      title: IngredientCreate
+    IngredientResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        name:
+          type: string
+          title: Name
+        quantity:
+          type: number
+          title: Quantity
+        unit:
+          type: string
+          title: Unit
+      type: object
+      required:
+      - id
+      - name
+      - quantity
+      - unit
+      title: IngredientResponse
+    RecipeCreate:
+      properties:
+        title:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Title
+          examples:
+          - Potato Gratin
+        description:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Description
+        instructions:
+          type: string
+          minLength: 1
+          title: Instructions
+          examples:
+          - Preheat the oven to 180°C...
+        servings:
+          type: integer
+          minimum: 1.0
+          title: Servings
+          examples:
+          - 4
+        is_vegetarian:
+          type: boolean
+          title: Is Vegetarian
+          examples:
+          - true
+        ingredients:
+          items:
+            $ref: '#/components/schemas/IngredientCreate'
+          type: array
+          minItems: 1
+          title: Ingredients
+      type: object
+      required:
+      - title
+      - instructions
+      - servings
+      - is_vegetarian
+      - ingredients
+      title: RecipeCreate
+    RecipeListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/RecipeResponse'
+          type: array
+          title: Items
+        total:
+          type: integer
+          title: Total
+        page:
+          type: integer
+          title: Page
+        page_size:
+          type: integer
+          title: Page Size
+        pages:
+          type: integer
+          title: Pages
+      type: object
+      required:
+      - items
+      - total
+      - page
+      - page_size
+      - pages
+      title: RecipeListResponse
+    RecipeResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        title:
+          type: string
+          title: Title
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        instructions:
+          type: string
+          title: Instructions
+        servings:
+          type: integer
+          title: Servings
+        is_vegetarian:
+          type: boolean
+          title: Is Vegetarian
+        owner_id:
+          type: integer
+          title: Owner Id
+        ingredients:
+          items:
+            $ref: '#/components/schemas/IngredientResponse'
+          type: array
+          title: Ingredients
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+      - id
+      - title
+      - description
+      - instructions
+      - servings
+      - is_vegetarian
+      - owner_id
+      - ingredients
+      - created_at
+      - updated_at
+      title: RecipeResponse
+    RecipeUpdate:
+      properties:
+        title:
+          anyOf:
+          - type: string
+            maxLength: 200
+            minLength: 1
+          - type: 'null'
+          title: Title
+        description:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Description
+        instructions:
+          anyOf:
+          - type: string
+            minLength: 1
+          - type: 'null'
+          title: Instructions
+        servings:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Servings
+        is_vegetarian:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Is Vegetarian
+        ingredients:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/IngredientCreate'
+            type: array
+            minItems: 1
+          - type: 'null'
+          title: Ingredients
+      type: object
+      title: RecipeUpdate
+    RefreshTokenRequest:
+      properties:
+        refresh_token:
+          type: string
+          title: Refresh Token
+      type: object
+      required:
+      - refresh_token
+      title: RefreshTokenRequest
+    TokenResponse:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        refresh_token:
+          type: string
+          title: Refresh Token
+        token_type:
+          type: string
+          title: Token Type
+          default: bearer
+        expires_in:
+          type: integer
+          title: Expires In
+      type: object
+      required:
+      - access_token
+      - refresh_token
+      - expires_in
+      title: TokenResponse
+    UserLoginRequest:
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email
+        password:
+          type: string
+          title: Password
+      type: object
+      required:
+      - email
+      - password
+      title: UserLoginRequest
+    UserRegisterRequest:
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email
+        password:
+          type: string
+          minLength: 8
+          title: Password
+        full_name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Full Name
+      type: object
+      required:
+      - email
+      - password
+      - full_name
+      title: UserRegisterRequest
+    UserResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        email:
+          type: string
+          format: email
+          title: Email
+        full_name:
+          type: string
+          title: Full Name
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - email
+      - full_name
+      - created_at
+      title: UserResponse
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer

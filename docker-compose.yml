@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-recipe_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-recipe_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-recipe_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-recipe_user} -d ${POSTGRES_DB:-recipe_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      target: production
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: /application/.venv/bin/fastapi dev /application/app/main.py --port 8000 --host 0.0.0.0
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./app:/application/app  # mount source for hot-reload
+      - ./alembic/versions:/application/alembic/versions  # mount source for hot-reload
+
+  test:
+    build:
+      context: .
+      target: test
+    env_file: .env.test
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      COVERAGE_FILE: /tmp/.coverage
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: ["test"]  # only runs with: docker compose --profile test run test
+
+volumes:
+  postgres_data:
