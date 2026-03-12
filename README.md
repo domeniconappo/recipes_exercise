@@ -112,6 +112,7 @@ GET /api/v1/recipes?exclude_ingredients=salmon&instructions_search=oven
 
 ## FastAPI folder structure
 
+```
 app/
 ├── config.py          # Settings from environment variables
 ├── database.py
@@ -128,3 +129,4 @@ app/
 └── services/
     ├── auth.py        # user auth operations with JWT
     └── recipe.py      # Recipe CRUD and filtering
+```
