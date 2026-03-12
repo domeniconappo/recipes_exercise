@@ -17,8 +17,10 @@ AUTH = "/api/v1/auth"
 # Session-scoped server (reuse pattern from auth integration tests)
 # ---------------------------------------------------------------------------
 
+
 def _get_free_port() -> int:
     import socket
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("127.0.0.1", 0))
         return s.getsockname()[1]
@@ -26,8 +28,11 @@ def _get_free_port() -> int:
 
 @pytest.fixture(scope="session")
 def recipe_server_url():
-    import threading, time
+    import threading
+    import time
+
     import uvicorn
+
     from app.main import app
 
     port = _get_free_port()
@@ -60,6 +65,7 @@ async def http_client(recipe_server_url):
 # Use a module-level counter for unique emails across the session
 _counter = 0
 
+
 def _unique_email():
     global _counter
     _counter += 1
@@ -68,12 +74,13 @@ def _unique_email():
 
 async def _register_login(rc, email=None):
     email = email or _unique_email()
-    await rc.post(f"{AUTH}/register", json={
-        "email": email, "password": "Str0ngPass!", "full_name": "Int User"
-    })
-    login = (await rc.post(f"{AUTH}/login", json={
-        "email": email, "password": "Str0ngPass!"
-    })).json()
+    await rc.post(
+        f"{AUTH}/register",
+        json={"email": email, "password": "Str0ngPass!", "full_name": "Int User"},
+    )
+    login = (
+        await rc.post(f"{AUTH}/login", json={"email": email, "password": "Str0ngPass!"})
+    ).json()
     return f"Bearer {login['access_token']}"
 
 
@@ -92,6 +99,7 @@ RECIPE = {
 # ---------------------------------------------------------------------------
 # Full CRUD lifecycle
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 class TestRecipeCRUDLifecycle:
@@ -133,30 +141,34 @@ class TestRecipeCRUDLifecycle:
 
 
 # ---------------------------------------------------------------------------
-# Filtering — assignment examples verified end-to-end
+# Filtering
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 class TestRecipeFiltersIntegration:
-    async def _seed(self, rc, token):
+    async def _seed(self, http_client, token):
         headers = {"Authorization": token}
         recipes = [
             {
                 "title": "Veggie Pasta",
                 "instructions": "Boil pasta. Add tomato sauce. Finish in the oven.",
-                "servings": 2, "is_vegetarian": True,
+                "servings": 2,
+                "is_vegetarian": True,
                 "ingredients": [{"name": "pasta", "quantity": 200, "unit": "grams"}],
             },
             {
                 "title": "Salmon Fillet",
                 "instructions": "Season salmon. Pan fry for 4 minutes each side.",
-                "servings": 2, "is_vegetarian": False,
+                "servings": 2,
+                "is_vegetarian": False,
                 "ingredients": [{"name": "salmon", "quantity": 300, "unit": "grams"}],
             },
             {
                 "title": "Potato Gratin",
                 "instructions": "Layer potatoes. Bake in the oven at 180°C.",
-                "servings": 4, "is_vegetarian": True,
+                "servings": 4,
+                "is_vegetarian": True,
                 "ingredients": [
                     {"name": "potatoes", "quantity": 500, "unit": "grams"},
                     {"name": "cream", "quantity": 200, "unit": "ml"},
@@ -164,7 +176,7 @@ class TestRecipeFiltersIntegration:
             },
         ]
         for r in recipes:
-            resp = await rc.post(API, json=r, headers=headers)
+            resp = await http_client.post(API, json=r, headers=headers)
             assert resp.status_code == 201
 
     async def test_all_vegetarian(self, http_client):
@@ -174,20 +186,22 @@ class TestRecipeFiltersIntegration:
         resp = await http_client.get(API, params={"vegetarian": "true"})
         assert resp.status_code == 200
         data = resp.json()
+        assert len(data["items"]) == 2
         assert all(r["is_vegetarian"] for r in data["items"])
 
     async def test_servings_and_ingredient(self, http_client):
         """Assignment example: serve 4 persons and have 'potatoes'."""
         token = await _register_login(http_client)
         await self._seed(http_client, token)
-        resp = await http_client.get(API, params={"servings": 4, "include_ingredients": "potatoes"})
+        resp = await http_client.get(
+            API, params={"servings": 4, "include_ingredients": "potatoes"}
+        )
         assert resp.status_code == 200
         items = resp.json()["items"]
         assert len(items) >= 1
         assert all(r["servings"] == 4 for r in items)
         assert all(
-            any(i["name"] == "potatoes" for i in r["ingredients"])
-            for r in items
+            any(i["name"] == "potatoes" for i in r["ingredients"]) for r in items
         )
 
     async def test_exclude_salmon_with_oven_instructions(self, http_client):
@@ -217,7 +231,9 @@ class TestRecipeOwnershipIntegration:
         token_a = await _register_login(http_client)
         token_b = await _register_login(http_client)
 
-        created = (await http_client.post(API, json=RECIPE, headers={"Authorization": token_a})).json()
+        created = (
+            await http_client.post(API, json=RECIPE, headers={"Authorization": token_a})
+        ).json()
         resp = await http_client.put(
             f"{API}/{created['id']}",
             json={"title": "Stolen"},
@@ -229,7 +245,9 @@ class TestRecipeOwnershipIntegration:
         token_a = await _register_login(http_client)
         token_b = await _register_login(http_client)
 
-        created = (await http_client.post(API, json=RECIPE, headers={"Authorization": token_a})).json()
+        created = (
+            await http_client.post(API, json=RECIPE, headers={"Authorization": token_a})
+        ).json()
         resp = await http_client.delete(
             f"{API}/{created['id']}",
             headers={"Authorization": token_b},

@@ -1238,6 +1238,7 @@ dependencies = [
     { name = "pydantic", extra = ["email"] },
     { name = "pydantic-settings" },
     { name = "pyjwt", extra = ["crypto"] },
+    { name = "pyyaml" },
     { name = "sqlmodel" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -1253,7 +1254,6 @@ dev = [
     { name = "pytest-cov" },
     { name = "pytest-env" },
     { name = "pytest-mock" },
-    { name = "pyyaml" },
     { name = "ruff" },
 ]
 
@@ -1267,6 +1267,7 @@ requires-dist = [
     { name = "pydantic", extras = ["email"], specifier = ">=2.12.5" },
     { name = "pydantic-settings", specifier = ">=2.13.1" },
     { name = "pyjwt", extras = ["crypto"], specifier = ">=2.11.0" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "sqlmodel", specifier = ">=0.0.37" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.41.0" },
 ]
@@ -1282,7 +1283,6 @@ dev = [
     { name = "pytest-cov", specifier = ">=4.0.0,<5" },
     { name = "pytest-env", specifier = "<1.5.0" },
     { name = "pytest-mock", specifier = ">=3.14.0,<4" },
-    { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "ruff", specifier = ">=0.1.14,<0.2" },
 ]
 

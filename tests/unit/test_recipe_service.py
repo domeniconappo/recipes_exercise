@@ -18,10 +18,10 @@ from app.services.recipe import (
     update_recipe,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def make_recipe_data(**overrides) -> RecipeCreate:
     data = {
@@ -54,6 +54,7 @@ async def make_user(db_session, email="chef@example.com") -> User:
 # get_recipe_by_id
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 class TestGetRecipeById:
     pytestmark = pytest.mark.asyncio(loop_scope="session")
@@ -76,6 +77,7 @@ class TestGetRecipeById:
 # ---------------------------------------------------------------------------
 # create_recipe
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 class TestCreateRecipe:
@@ -141,6 +143,7 @@ class TestCreateRecipe:
 # update_recipe
 # ---------------------------------------------------------------------------
 
+
 # @pytest.mark.asyncio
 class TestUpdateRecipe:
     pytestmark = pytest.mark.asyncio(loop_scope="session")
@@ -149,7 +152,9 @@ class TestUpdateRecipe:
         user = await make_user(db_session)
         recipe = await create_recipe(db_session, make_recipe_data(), owner_id=user.id)
 
-        updated = await update_recipe(db_session, recipe, RecipeUpdate(title="New Title"))
+        updated = await update_recipe(
+            db_session, recipe, RecipeUpdate(title="New Title")
+        )
 
         assert updated.title == "New Title"
         assert updated.servings == 4  # unchanged
@@ -205,9 +210,7 @@ class TestUpdateRecipe:
             owner_id=user.id,
         )
 
-        updated = await update_recipe(
-            db_session, recipe, RecipeUpdate(servings=8)
-        )
+        updated = await update_recipe(db_session, recipe, RecipeUpdate(servings=8))
 
         assert updated.servings == 8
         assert updated.description == "Original description"
@@ -218,6 +221,7 @@ class TestUpdateRecipe:
 # ---------------------------------------------------------------------------
 # delete_recipe
 # ---------------------------------------------------------------------------
+
 
 # @pytest.mark.asyncio
 class TestDeleteRecipe:
@@ -235,6 +239,7 @@ class TestDeleteRecipe:
 
     async def test_ingredients_are_deleted_with_recipe(self, db_session):
         from sqlalchemy import select
+
         from app.models.recipe import RecipeIngredient
 
         user = await make_user(db_session)
@@ -253,6 +258,7 @@ class TestDeleteRecipe:
 # list_recipes — filtering
 # ---------------------------------------------------------------------------
 
+
 # @pytest.mark.asyncio
 class TestListRecipes:
     pytestmark = pytest.mark.asyncio(loop_scope="session")
@@ -261,38 +267,50 @@ class TestListRecipes:
         """Seed db_session with a variety of recipes for filter testing."""
         user = await make_user(db_session)
 
-        await create_recipe(db_session, RecipeCreate(
-            title="Veggie Pasta",
-            instructions="Boil pasta. Add tomato sauce in the oven.",
-            servings=2,
-            is_vegetarian=True,
-            ingredients=[
-                {"name": "pasta", "quantity": 200, "unit": "grams"},
-                {"name": "tomato", "quantity": 3, "unit": "pieces"},
-            ],
-        ), owner_id=user.id)
+        await create_recipe(
+            db_session,
+            RecipeCreate(
+                title="Veggie Pasta",
+                instructions="Boil pasta. Add tomato sauce in the oven.",
+                servings=2,
+                is_vegetarian=True,
+                ingredients=[
+                    {"name": "pasta", "quantity": 200, "unit": "grams"},
+                    {"name": "tomato", "quantity": 3, "unit": "pieces"},
+                ],
+            ),
+            owner_id=user.id,
+        )
 
-        await create_recipe(db_session, RecipeCreate(
-            title="Salmon Fillet",
-            instructions="Season salmon. Pan fry for 4 minutes each side.",
-            servings=2,
-            is_vegetarian=False,
-            ingredients=[
-                {"name": "salmon", "quantity": 300, "unit": "grams"},
-                {"name": "lemon", "quantity": 1, "unit": "piece"},
-            ],
-        ), owner_id=user.id)
+        await create_recipe(
+            db_session,
+            RecipeCreate(
+                title="Salmon Fillet",
+                instructions="Season salmon. Pan fry for 4 minutes each side.",
+                servings=2,
+                is_vegetarian=False,
+                ingredients=[
+                    {"name": "salmon", "quantity": 300, "unit": "grams"},
+                    {"name": "lemon", "quantity": 1, "unit": "piece"},
+                ],
+            ),
+            owner_id=user.id,
+        )
 
-        await create_recipe(db_session, RecipeCreate(
-            title="Potato Gratin",
-            instructions="Layer potatoes. Bake in the oven at 180°C.",
-            servings=4,
-            is_vegetarian=True,
-            ingredients=[
-                {"name": "potatoes", "quantity": 500, "unit": "grams"},
-                {"name": "cream", "quantity": 200, "unit": "ml"},
-            ],
-        ), owner_id=user.id)
+        await create_recipe(
+            db_session,
+            RecipeCreate(
+                title="Potato Gratin",
+                instructions="Layer potatoes. Bake in the oven at 180°C.",
+                servings=4,
+                is_vegetarian=True,
+                ingredients=[
+                    {"name": "potatoes", "quantity": 500, "unit": "grams"},
+                    {"name": "cream", "quantity": 200, "unit": "ml"},
+                ],
+            ),
+            owner_id=user.id,
+        )
 
         return user
 
@@ -304,25 +322,19 @@ class TestListRecipes:
 
     async def test_filter_vegetarian_true(self, db_session):
         await self._seed(db_session)
-        result = await list_recipes(
-            db_session, RecipeFilterParams(vegetarian=True)
-        )
+        result = await list_recipes(db_session, RecipeFilterParams(vegetarian=True))
         assert result.total == 2
         assert all(r.is_vegetarian for r in result.items)
 
     async def test_filter_vegetarian_false(self, db_session):
         await self._seed(db_session)
-        result = await list_recipes(
-            db_session, RecipeFilterParams(vegetarian=False)
-        )
+        result = await list_recipes(db_session, RecipeFilterParams(vegetarian=False))
         assert result.total == 1
         assert result.items[0].title == "Salmon Fillet"
 
     async def test_filter_by_servings(self, db_session):
         await self._seed(db_session)
-        result = await list_recipes(
-            db_session, RecipeFilterParams(servings=4)
-        )
+        result = await list_recipes(db_session, RecipeFilterParams(servings=4))
         assert result.total == 1
         assert result.items[0].title == "Potato Gratin"
 
@@ -420,18 +432,14 @@ class TestListRecipes:
 
     async def test_pagination_page_size(self, db_session):
         await self._seed(db_session)
-        result = await list_recipes(
-            db_session, RecipeFilterParams(page=1, page_size=2)
-        )
+        result = await list_recipes(db_session, RecipeFilterParams(page=1, page_size=2))
         assert len(result.items) == 2
         assert result.total == 3
         assert result.pages == 2
 
     async def test_pagination_second_page(self, db_session):
         await self._seed(db_session)
-        result = await list_recipes(
-            db_session, RecipeFilterParams(page=2, page_size=2)
-        )
+        result = await list_recipes(db_session, RecipeFilterParams(page=2, page_size=2))
         assert len(result.items) == 1
         assert result.total == 3
 

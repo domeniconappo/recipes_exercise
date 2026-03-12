@@ -3,6 +3,7 @@ import pytest
 
 API = "/api/v1/auth"
 
+
 class TestRegister:
     pytestmark = pytest.mark.asyncio(loop_scope="session")
 
@@ -58,6 +59,7 @@ class TestRegister:
 # @pytest.mark.asyncio
 class TestLogin:
     pytestmark = pytest.mark.asyncio(loop_scope="session")
+
     async def test_login_success(self, client):
         await client.post(
             f"{API}/register",
@@ -103,6 +105,7 @@ class TestLogin:
 # @pytest.mark.asyncio
 class TestRefresh:
     pytestmark = pytest.mark.asyncio(loop_scope="session")
+
     async def test_refresh_success(self, client):
         await client.post(
             f"{API}/register",
@@ -151,6 +154,7 @@ class TestRefresh:
 # @pytest.mark.asyncio
 class TestMe:
     pytestmark = pytest.mark.asyncio(loop_scope="session")
+
     async def test_me_authenticated(self, client):
         await client.post(
             f"{API}/register",

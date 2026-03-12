@@ -1,7 +1,5 @@
-
 import pytest
 import pytest_asyncio
-
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
@@ -9,17 +7,16 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-
 from sqlmodel import SQLModel
 
-from app.main import app
-from app.database import get_db
 from app.config import settings
-
+from app.database import get_db
+from app.main import app
 
 # ---------------------------------------------------------
 # Engine + schema (session-scoped)
 # ---------------------------------------------------------
+
 
 @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def engine():
@@ -47,6 +44,7 @@ async def engine():
 # ---------------------------------------------------------
 # Session factory
 # ---------------------------------------------------------
+
 
 @pytest_asyncio.fixture(scope="session", loop_scope="session")
 def session_factory(engine):
@@ -86,9 +84,11 @@ async def db_session(engine):
     async with session_factory() as session:
         yield session
 
+
 # ---------------------------------------------------------
 # Automatic TRUNCATE between every test
 # ---------------------------------------------------------
+
 
 @pytest_asyncio.fixture(autouse=True, loop_scope="session")
 async def cleanup_db(engine):
@@ -102,12 +102,14 @@ async def cleanup_db(engine):
 # FastAPI test client (NOW SESSION-SCOPED)
 # ---------------------------------------------------------
 
+
 @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def client(session_factory):
     """
     One shared AsyncClient for the entire test session.
     This + the pytest config above puts everything on the same event loop.
     """
+
     async def override_get_db():
         async with session_factory() as session:
             yield session
