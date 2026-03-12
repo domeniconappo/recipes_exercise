@@ -1,11 +1,9 @@
-init_db:
-	...
-
 build:
 	docker compose build app
 
 run:
 	docker compose up -d
+	make migrate_db
 
 stop:
 	docker compose down
@@ -22,6 +20,5 @@ create_db_migration: run
 	docker compose exec app /application/.venv/bin/alembic -c /application/alembic.ini revision --autogenerate
 	make stop
 
-migrate_db: run
+migrate_db:
 	docker compose exec app /application/.venv/bin/alembic -c /application/alembic.ini upgrade head
-	make stop

@@ -16,25 +16,45 @@ Any user can manage their own recipes while having access to all others' recipes
 The repository uses docker compose for local dev and testing.
 Ensure you have docker compose installed before running these commands.
 
+### Clone the repo from GitHub
+
+`git clone https://github.com/domeniconappo/recipes_exercise.git`
+
 Copy the env file and edit it (if only for tests, defaults are fine):
 
-`cp .env.example .env`
+```
+cd recipes_exercise
+cp .env.example .env
+```
+
+### Start the application
 
 You can then start the app and the DB servers with:
 
-`make run`
+`make run` or `docker compose up -d`
 
-The app is available at http://localhost:8000.
+`make run` will also migrate the DB if needed. 
+
+If you don't have `make` installed, to migrate the DB uses the docker compose command directly.
+Note: this is needed only the first time the app runs in the environment
+
+`docker compose exec app /application/.venv/bin/alembic -c /application/alembic.ini upgrade head`
+
+The app will be available at http://localhost:8000.
 Interactive API docs: http://localhost:8000/docs.
 
-To tear down services:
+To tear down the services:
 
-`make stop`
+`make stop` or `docker compose down`
 
-To run tests:
+### Tests
+
+The app has unit tests and integration tests with a real http client).
+They use PyTest.
+
+To run the test suite:
 
 `make test`
-
 
 ## Endpoints
 
@@ -57,7 +77,7 @@ To run tests:
 | `PUT`    | `/recipes/{id}` | required (owner) | update                  |
 | `DELETE` | `/recipes/{id}` | required (owner) | Delete                  |
 
-### Filtering (`GET /recipes`)
+### Filtering (`GET /api/v1/recipes`)
 
 All query parameters are optional and combinable.
 
@@ -90,7 +110,7 @@ GET /api/v1/recipes?exclude_ingredients=salmon&instructions_search=oven
 | `APP_ENV`                     | `development` (enables SQL query logging)         |
 
 
-## Project structure
+## FastAPI folder structure
 
 app/
 ├── config.py          # Settings from environment variables
